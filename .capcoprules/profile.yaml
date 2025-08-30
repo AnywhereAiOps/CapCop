@@ -1,0 +1,17 @@
+# CapCop Rules Profile Configuration
+# This file specifies which profile to use and any profile-specific overrides
+
+# Profile to use as base (capcop-default, cline, gemini)
+profile: capcop-default
+
+# Profile-specific overrides
+# These settings will override the selected profile's defaults
+overrides:
+  behavior:
+    autoApprove:
+      read_project: true
+      cmd_safe: true
+  
+  quotas:
+    maxRequestsPerAction: 50
+    defaultTtlMinutes: 120

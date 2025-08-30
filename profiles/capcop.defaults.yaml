@@ -1,0 +1,60 @@
+behavior:
+  autoApprove:
+    read_project: false
+    read_all: false
+    edit_project: false
+    edit_all: false
+    cmd_safe: false
+    cmd_any: false
+    browser: false
+    mcp: false
+
+permissions:
+  safeCommands:
+    - "npm test"
+    - "npm run test"
+    - "npm run build"
+    - "npm run lint"
+    - "pnpm test"
+    - "pnpm run test" 
+    - "pnpm run build"
+    - "pnpm run lint"
+    - "yarn test"
+    - "yarn build"
+    - "yarn lint"
+    - "tsc --noEmit"
+    - "eslint --fix"
+    - "prettier --write"
+  readScopes:
+    - "**/*"
+  editScopes:
+    - "src/**/*"
+    - "docs/**/*"
+    - "*.md"
+    - "*.json"
+    - "*.ts"
+    - "*.js"
+
+protect:
+  denyPaths:
+    - ".git/**"
+    - "**/node_modules/**"
+    - "**/.env*"
+    - "**/dist/**"
+    - "**/build/**"
+  denyCommands:
+    - "rm -rf"
+    - "rm -r"
+    - "del /s"
+    - "rmdir /s"
+    - "git push --force"
+    - "git push -f"
+    - "sudo"
+    - "su"
+    - "chmod 777"
+    - "chown"
+
+quotas:
+  maxRequestsPerAction: 100
+  defaultTtlMinutes: 60
+  maxTtlMinutes: 1440

@@ -1,0 +1,65 @@
+behavior:
+  autoApprove:
+    read_project: false
+    read_all: false
+    edit_project: false
+    edit_all: false
+    cmd_safe: false
+    cmd_any: false
+    browser: false
+    mcp: false
+
+permissions:
+  safeCommands:
+    - "npm test"
+    - "npm run build"
+    - "npm run lint"
+    - "tsc --noEmit"
+    - "prettier --check"
+  readScopes:
+    - "src/**/*"
+    - "docs/**/*"
+    - "*.md"
+    - "*.json"
+    - "package.json"
+    - "tsconfig.json"
+  editScopes:
+    - "src/**/*"
+    - "docs/**/*"
+    - "*.md"
+
+protect:
+  denyPaths:
+    - ".git/**"
+    - "**/node_modules/**"
+    - "**/.env*"
+    - "**/dist/**"
+    - "**/build/**"
+    - "**/.vscode/**"
+    - "**/coverage/**"
+  denyCommands:
+    - "rm -rf"
+    - "rm -r"
+    - "del /s"
+    - "rmdir /s"
+    - "git push --force"
+    - "git push -f"
+    - "sudo"
+    - "su"
+    - "chmod 777"
+    - "chown"
+    - "mkfs"
+    - "fdisk"
+    - "dd if="
+    - "format"
+    - "> /dev/"
+    - "curl -s * | sh"
+    - "wget * | sh"
+    - "eval"
+    - "exec"
+    - "npm install"  # Conservative: require approval for installs
+
+quotas:
+  maxRequestsPerAction: 50   # Conservative quota
+  defaultTtlMinutes: 30      # Short TTL
+  maxTtlMinutes: 720         # 12 hours max

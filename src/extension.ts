@@ -5,6 +5,7 @@ import { ProviderRegistry } from './core/providers/ProviderRegistry';
 import { ToolRegistry } from './core/tools/ToolRegistry';
 import { ChatSessionManager } from './core/sessions/ChatSessionManager';
 import { Logger } from './core/logging/Logger';
+import { registerApprovalCommands } from './commands/ApprovalCommands';
 import * as nls from 'vscode-nls';
 
 // Initialize localization
@@ -54,6 +55,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
         // Register commands
         registerCommands(context);
+        
+        // Register approval commands
+        registerApprovalCommands(context);
 
         logger.info('CapCop extension activated successfully');
     } catch (error) {

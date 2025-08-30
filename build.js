@@ -34,10 +34,34 @@ const webviewConfig = {
   jsxImportSource: 'preact'
 };
 
+const approvalWebviewConfig = {
+  entryPoints: ['src/ui/webview/approval-webview.tsx'],
+  bundle: true,
+  outfile: 'dist/webview/approval.js',
+  format: 'iife',
+  platform: 'browser',
+  target: 'es2022',
+  sourcemap: true,
+  minify: !isWatch,
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(isWatch ? 'development' : 'production')
+  },
+  jsx: 'automatic',
+  jsxImportSource: 'preact'
+};
+
 const cssConfig = {
   entryPoints: ['src/ui/webview/styles/main.css'],
   bundle: true,
   outfile: 'dist/webview/styles.css',
+  minify: !isWatch,
+  sourcemap: true
+};
+
+const approvalCssConfig = {
+  entryPoints: ['src/ui/webview/styles/approval.css'],
+  bundle: true,
+  outfile: 'dist/webview/approval.css',
   minify: !isWatch,
   sourcemap: true
 };
@@ -51,12 +75,16 @@ async function build() {
       
       const extensionContext = await esbuild.context(extensionConfig);
       const webviewContext = await esbuild.context(webviewConfig);
+      const approvalWebviewContext = await esbuild.context(approvalWebviewConfig);
       const cssContext = await esbuild.context(cssConfig);
+      const approvalCssContext = await esbuild.context(approvalCssConfig);
       
       await Promise.all([
         extensionContext.watch(),
         webviewContext.watch(),
-        cssContext.watch()
+        approvalWebviewContext.watch(),
+        cssContext.watch(),
+        approvalCssContext.watch()
       ]);
       
       console.log('Watching for changes...');
@@ -64,7 +92,9 @@ async function build() {
       await Promise.all([
         esbuild.build(extensionConfig),
         esbuild.build(webviewConfig),
-        esbuild.build(cssConfig)
+        esbuild.build(approvalWebviewConfig),
+        esbuild.build(cssConfig),
+        esbuild.build(approvalCssConfig)
       ]);
       
       console.log('Build completed successfully!');

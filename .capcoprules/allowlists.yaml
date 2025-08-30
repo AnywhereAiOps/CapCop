@@ -1,0 +1,52 @@
+# CapCop Allowlists Configuration
+# Define what actions are permitted
+
+permissions:
+  # File scopes that can be read
+  readScopes:
+    - "src/**/*"
+    - "*.md"
+    - "*.json"
+    - "*.yaml"
+    - "*.yml"
+    - "*.txt"
+    - "package.json"
+    - "tsconfig.json"
+    - ".vscode/**/*"
+    - "docs/**/*"
+
+  # File scopes that can be edited
+  editScopes:
+    - "src/**/*"
+    - "*.md"
+    - "docs/**/*"
+    - "package.json"
+    - "tsconfig.json"
+    - ".vscode/settings.json"
+
+  # Safe commands that can be executed
+  safeCommands:
+    - "npm test"
+    - "npm run"
+    - "npm install"
+    - "npm ci"
+    - "npm run build"
+    - "npm run lint"
+    - "git status"
+    - "git diff"
+    - "git log"
+    - "git branch"
+    - "git stash"
+    - "ls"
+    - "pwd"
+    - "cat"
+    - "head"
+    - "tail"
+    - "grep"
+    - "find"
+    - "which"
+    - "echo"
+    - "node -v"
+    - "npm -v"
+    - "tsc"
+    - "eslint"

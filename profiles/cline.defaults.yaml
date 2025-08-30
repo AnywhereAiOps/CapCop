@@ -1,0 +1,66 @@
+behavior:
+  autoApprove:
+    read_project: false
+    read_all: false
+    edit_project: false
+    edit_all: false
+    cmd_safe: false
+    cmd_any: false
+    browser: false
+    mcp: false
+
+permissions:
+  safeCommands:
+    - "npm test"
+    - "npm run test"
+    - "npm run build"
+    - "npm run lint"
+    - "pnpm test"
+    - "pnpm run test" 
+    - "pnpm run build"
+    - "pnpm run lint"
+    - "yarn test"
+    - "yarn build"
+    - "yarn lint"
+    - "tsc --noEmit"
+    - "eslint --fix"
+    - "prettier --write"
+    # Cline-specific: emphasize npm with user input handling
+    - "echo q | npm test"
+    - "echo yes | npm run setup"
+    - "echo n | npm audit fix"
+  readScopes:
+    - "**/*"
+  editScopes:
+    - "**/*"  # Cline allows broader editing
+
+protect:
+  denyPaths:
+    - ".git/**"
+    - "**/node_modules/**"
+    - "**/.env*"
+  denyCommands:
+    - "rm -rf"
+    - "rm -r"
+    - "del /s"
+    - "rmdir /s"
+    - "git push --force"
+    - "git push -f"
+    - "sudo"
+    - "su"
+    - "chmod 777"
+    - "chown"
+    - "mkfs"
+    - "fdisk"
+    - "dd if="
+    - "format"
+    - "> /dev/"
+    - "curl -s * | sh"
+    - "wget * | sh"
+    - "eval"
+    - "exec"
+
+quotas:
+  maxRequestsPerAction: 200  # Higher quota for Cline
+  defaultTtlMinutes: 120     # Longer TTL
+  maxTtlMinutes: 2880        # 48 hours max

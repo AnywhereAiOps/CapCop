@@ -28,7 +28,13 @@
   ],
   "browser": "./dist/extension-web.js",
   "activationEvents": [
-    "onView:capcop.sidebar"
+    "onView:capcop.sidebar",
+    "onCommand:capcop.open",
+    "onCommand:capcop.startChat",
+    "onCommand:capcop.configureProvider",
+    "onCommand:capcop.showApprovalModal",
+    "onCommand:capcop.resetApprovals",
+    "onCommand:capcop.showApprovalStatus"
   ],
   "contributes": {
     "viewsContainers": {
@@ -106,6 +112,24 @@
         "title": "Configure Provider",
         "category": "CapCop",
         "icon": "$(settings-gear)"
+      },
+      {
+        "command": "capcop.showApprovalModal",
+        "title": "Show Approval Settings",
+        "category": "CapCop",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "capcop.resetApprovals",
+        "title": "Reset Approvals",
+        "category": "CapCop",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "capcop.showApprovalStatus",
+        "title": "Show Approval Status",
+        "category": "CapCop",
+        "icon": "$(info)"
       }
     ],
     "menus": {
@@ -119,6 +143,25 @@
           "command": "capcop.configureProvider",
           "when": "view == capcop.sidebar",
           "group": "navigation@2"
+        },
+        {
+          "command": "capcop.showApprovalModal",
+          "when": "view == capcop.sidebar",
+          "group": "security@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "capcop.showApprovalModal",
+          "title": "CapCop: Show Approval Settings"
+        },
+        {
+          "command": "capcop.resetApprovals",
+          "title": "CapCop: Reset Approvals"
+        },
+        {
+          "command": "capcop.showApprovalStatus",
+          "title": "CapCop: Show Approval Status"
         }
       ]
     },
@@ -236,6 +279,9 @@
   },
   "dependencies": {
     "@preact/signals-core": "^1.12.1",
+    "@types/js-yaml": "^4.0.9",
+    "js-yaml": "^4.1.0",
+    "minimatch": "^10.0.3",
     "preact": "^10.27.1",
     "vscode-nls": "^5.2.0",
     "zod": "^3.23.8"
