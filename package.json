@@ -24,20 +24,19 @@
     "codespaces"
   ],
   "extensionKind": [
-    "web"
+    "ui"
   ],
   "browser": "./dist/extension-web.js",
   "activationEvents": [
     "onView:capcop.sidebar"
   ],
-  "main": "./dist/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
           "id": "capcop",
           "title": "CapCop",
-          "icon": "$(robot)"
+          "icon": "resources/capcop.svg"
         }
       ]
     },

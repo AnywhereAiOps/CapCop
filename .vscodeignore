@@ -1,0 +1,57 @@
+# Source files (keep only compiled outputs)
+src/**
+tsconfig.json
+build.js
+
+# Development and testing
+test-workspace/**
+.vscode-test-web/**
+.vscode/**
+.github/**
+.husky/**
+
+# Build tools and configs
+vitest.config.*
+.eslintrc.*
+prettier.config.*
+jest.config.*
+
+# Documentation that's not needed in the packaged extension
+DEVELOPMENT.md
+memory-bank/**
+
+# Maps and debug files
+**/*.map
+**/*.test.*
+**/*.spec.*
+
+# Logs and temporary files
+**/*.log
+**/*.pid
+debug-webview.html
+index.html
+
+# Environment and system files
+.env*
+.DS_Store
+.git/**
+.gitignore
+.gitattributes
+
+# Node.js
+node_modules/**
+npm-debug.log*
+yarn-debug.log*
+
+# Cache and coverage
+coverage/**
+.nyc_output/**
+.eslintcache
+.cache/**
+
+# Development scripts
+run_local.sh
+run_codeserver.sh
+
+# Extension packages
+*.vsix

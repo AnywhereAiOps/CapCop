@@ -256,3 +256,48 @@ vsce publish  # To VS Code Marketplace
 2. Verify package.json `extensionKind: ["web"]`
 3. Ensure no Node.js native dependencies
 4. Test in VS Code desktop first, then web
+
+## Alternative Development Setup
+
+### Code-Server (Robust Alternative)
+
+For more reliable extension testing, you can use code-server instead of VS Code Web:
+
+```bash
+./run_codeserver.sh
+```
+
+This script will:
+- Install code-server if not present
+- Build and package the extension as .vsix
+- Start code-server with the extension pre-installed
+- Create a comprehensive test workspace
+
+**Benefits over VS Code Web:**
+- More stable extension loading
+- Better debugging experience  
+- Offline development capability
+- Full VS Code feature parity
+
+**Usage:**
+1. Run `./run_codeserver.sh`
+2. Access http://localhost:8080 (or custom PORT)
+3. Extension automatically installed and ready
+4. Look for CapCop robot icon in Activity Bar
+
+**Custom Port:**
+```bash
+PORT=3000 ./run_codeserver.sh
+```
+
+### Development Method Comparison
+
+| Feature | VS Code Web (`run_local.sh`) | Code-Server (`run_codeserver.sh`) |
+|---------|----------------------------|----------------------------------|
+| **Speed** | ⚡ Fast startup | 🐌 Slower (packaging step) |
+| **Reliability** | ⚠️ Sometimes unstable | ✅ Very stable |
+| **Debugging** | ⚠️ Limited | ✅ Full debugging |
+| **Internet Required** | ✅ Yes | ❌ No (after install) |
+| **Extension Updates** | 🔄 Auto-reload | 📦 Manual reinstall |
+
+**Recommendation:** Use `run_local.sh` for quick iteration, `run_codeserver.sh` for thorough testing.

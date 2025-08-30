@@ -106,38 +106,19 @@ npx vscode-test-web \
     --port="$PORT" \
     --extensionDevelopmentPath="$(pwd)" \
     --folder-uri="vscode-vfs://github/test/workspace" \
-    "$TEST_WORKSPACE" 2>/dev/null || {
+    "$TEST_WORKSPACE" || {
     
-    echo -e "${RED}❌ Failed to start with vscode-test-web${NC}"
-    echo -e "${YELLOW}💡 Trying alternative method with serve...${NC}"
-    
-    # Fallback: Create a simple HTML server
-    if ! command -v npx serve &> /dev/null; then
-        echo -e "${YELLOW}📦 Installing serve...${NC}"
-        npm install -g serve
-    fi
-    
-    # Create a simple index.html that redirects to VS Code Web
-    cat > index.html << EOF
-<!DOCTYPE html>
-<html>
-<head>
-    <title>CapCop Development</title>
-    <meta http-equiv="refresh" content="0; url=https://vscode.dev/">
-</head>
-<body>
-    <h1>CapCop Development</h1>
-    <p>Redirecting to VS Code Web...</p>
-    <p>To test the extension:</p>
-    <ol>
-        <li>Go to <a href="https://vscode.dev/">vscode.dev</a></li>
-        <li>Install the extension from the .vsix file in this directory</li>
-        <li>Open the Command Palette and run "CapCop: Open"</li>
-    </ol>
-</body>
-</html>
-EOF
-    
-    echo -e "${BLUE}📁 Created development guide at http://localhost:${PORT}${NC}"
-    npx serve -p "$PORT" -s .
+    echo -e "${RED}❌ Failed to start VS Code Web server${NC}"
+    echo -e "${YELLOW}💡 This could be due to:${NC}"
+    echo -e "   • Port $PORT already in use"
+    echo -e "   • Missing dependencies"
+    echo -e "   • Network connectivity issues"
+    echo ""
+    echo -e "${YELLOW}🔧 Try these solutions:${NC}"
+    echo -e "   • Use a different port: PORT=3000 $0"
+    echo -e "   • Kill any running VS Code Web processes: pkill -f vscode-test-web"
+    echo -e "   • Check if the port is free: lsof -i :$PORT"
+    echo ""
+    echo -e "${BLUE}💡 For production testing, consider using code-server instead${NC}"
+    exit 1
 }

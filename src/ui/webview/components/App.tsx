@@ -65,8 +65,38 @@ export function App() {
     }, [state.currentMessages]);
 
     useEffect(() => {
-        // Get VS Code API
-        vscodeRef.current = acquireVsCodeApi();
+        console.log('CapCop App: Initializing...');
+        // Get VS Code API with fallback for development
+        try {
+            vscodeRef.current = acquireVsCodeApi();
+            console.log('CapCop App: VS Code API acquired successfully');
+        } catch (error) {
+            console.warn('VS Code API not available, using fallback for development');
+            vscodeRef.current = {
+                postMessage: (message: any) => {
+                    console.log('Would send message to VS Code:', message);
+                    // For development, simulate some responses
+                    if (message.type === 'ready') {
+                        setTimeout(() => {
+                            window.postMessage({
+                                data: {
+                                    type: 'initialize',
+                                    data: {
+                                        providers: [
+                                            { id: 'openrouter', displayName: 'OpenRouter' }
+                                        ],
+                                        sessions: [],
+                                        activeSessionId: undefined
+                                    }
+                                }
+                            }, '*');
+                        }, 100);
+                    }
+                },
+                getState: () => ({}),
+                setState: () => {}
+            };
+        }
 
         // Handle messages from extension
         const handleMessage = (event: MessageEvent) => {

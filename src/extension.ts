@@ -20,6 +20,7 @@ let logger: Logger;
 export async function activate(context: vscode.ExtensionContext) {
     logger = new Logger();
     logger.info('CapCop extension activating...');
+    console.log('CapCop: Extension activation started');
 
     try {
         // Initialize core services
