@@ -213,6 +213,7 @@
     "build:watch": "node build.js --watch",
     "compile": "tsc -p ./",
     "compile:watch": "tsc -p ./ -w",
+    "dev": "./run_local.sh",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",

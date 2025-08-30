@@ -41,6 +41,34 @@ npm run compile  # TypeScript compilation
 npm run build    # Bundle generation
 ```
 
+### Local Development Server
+Run VS Code Web locally with the extension loaded:
+```bash
+npm run dev
+# or directly:
+./run_local.sh
+```
+
+This script will:
+- Install dependencies if needed
+- Build the extension if outdated
+- Start VS Code Web server on http://localhost:8080
+- Display local and network IP addresses for access
+- Create a test workspace for development
+- Automatically load the extension in development mode
+
+The server will display connection URLs like:
+```
+🔗 Access VS Code Web at:
+   Local:    http://localhost:8080
+   Network:  http://192.168.1.100:8080
+```
+
+You can customize the port and host:
+```bash
+PORT=3000 HOST=127.0.0.1 ./run_local.sh
+```
+
 ### Build System
 Uses esbuild for web-compatible bundling:
 - `dist/extension-web.js` - Main extension bundle
