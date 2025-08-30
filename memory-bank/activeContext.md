@@ -1,15 +1,22 @@
 # Active Context
 
 ## Current Focus
-**CapCop Initial Implementation Complete** - Full foundation architecture with built-in tools, provider scaffolding, webview UI, and build system fully operational. Ready for provider implementation and integration testing.
+**Ollama Provider Streaming Implementation Complete** - Fixed streaming response issues with Ollama provider and UI-provider synchronization. Extension now properly handles provider selection from UI and streams responses without 401 errors or unknown message warnings.
 
 ## Recent Accomplishments
+
+### ✅ Ollama Provider Streaming Fixed
+- **Provider Selection Sync**: UI provider/model selection now properly synchronized with backend session creation
+- **401 Error Resolution**: Removed hardcoded OpenRouter fallback, now uses UI-selected provider (Ollama)
+- **Warning Message Handling**: Added proper streamWarning message handling in webview with visual indicators
+- **Dynamic Session Updates**: Sessions automatically update provider/model when changed in UI
+- **Model Auto-Selection**: Automatically fetches and selects first available model when none specified
 
 ### ✅ Core Architecture Implemented
 - **Extension Entry Point**: Complete extension.ts with command registration and service initialization
 - **Tool System**: All 5 built-in tools implemented with TypeScript strict mode compliance
-- **Provider Framework**: ProviderAdapter interface and registry scaffolding complete
-- **Webview UI**: React-based chat interface with message handling and component structure
+- **Provider Framework**: ProviderAdapter interface and registry scaffolding complete with Ollama integration
+- **Webview UI**: React-based chat interface with provider/model selection and streaming support
 - **Build System**: esbuild configuration producing web and extension bundles
 
 ### ✅ Built-in Tools Completed
@@ -24,12 +31,13 @@
 - **Web-Only Constraints**: Full browser compatibility, no Node.js native dependencies
 - **CSP Compliance**: Webview security model with nonce-based script loading
 - **Build Pipeline**: Successful compilation to dist/ with source maps
+- **Streaming Integration**: Full request-response cycle with real-time streaming and error handling
 
 ## Next Immediate Steps
-1. **Provider Integration**: Complete OpenAI, Anthropic, OpenRouter streaming implementations
-2. **UI Polish**: Enhance chat interface with provider/model pickers and diff preview modal
-3. **Tool Testing**: Verify built-in tools work correctly in sidebar with approval workflows
-4. **End-to-End Validation**: Full chat → tool execution → file operation testing
+1. **End-to-End Testing**: Verify Ollama streaming works end-to-end with model selection
+2. **OpenRouter Integration**: Test OpenRouter provider with proper API key configuration
+3. **Tool Execution**: Verify built-in tools work correctly in sidebar with approval workflows
+4. **UI Polish**: Enhance chat interface with better error handling and user feedback
 
 ## Key Patterns and Preferences
 

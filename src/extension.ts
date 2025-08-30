@@ -20,7 +20,9 @@ let logger: Logger;
 export async function activate(context: vscode.ExtensionContext) {
     logger = new Logger();
     logger.info('CapCop extension activating...');
-    console.log('CapCop: Extension activation started');
+    console.log('🚀 CapCop: Extension activation started');
+    console.log('🚀 CapCop: Extension activation started');
+    console.log('🚀 CapCop: Extension activation started');
 
     try {
         // Initialize core services
@@ -28,6 +30,9 @@ export async function activate(context: vscode.ExtensionContext) {
         providerRegistry = new ProviderRegistry(globalConfig, context.secrets);
         toolRegistry = new ToolRegistry();
         sessionManager = new ChatSessionManager(globalConfig);
+
+        // Initialize providers and tools first
+        await initializeServices();
 
         // Initialize sidebar provider
         sidebarProvider = new CapCopSidebarProvider(
@@ -49,9 +54,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
         // Register commands
         registerCommands(context);
-
-        // Initialize providers and tools
-        await initializeServices();
 
         logger.info('CapCop extension activated successfully');
     } catch (error) {

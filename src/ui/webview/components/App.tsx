@@ -6,6 +6,13 @@ interface Provider {
     displayName: string;
 }
 
+interface Model {
+    id: string;
+    label: string;
+    contextWindow?: number;
+    supportsToolCalls?: boolean;
+}
+
 interface Message {
     id?: string;
     role: 'user' | 'assistant' | 'system';
@@ -40,6 +47,10 @@ interface AppState {
     isReady: boolean;
     isStreaming: boolean;
     streamingMessageId?: string;
+    selectedProviderId: string;
+    availableModels: Model[];
+    selectedModelId: string;
+    isLoadingModels: boolean;
 }
 
 export function App() {
@@ -48,7 +59,11 @@ export function App() {
         sessions: [],
         currentMessages: [],
         isReady: false,
-        isStreaming: false
+        isStreaming: false,
+        selectedProviderId: 'ollama',
+        availableModels: [],
+        selectedModelId: '',
+        isLoadingModels: false
     });
     
     const [inputValue, setInputValue] = useState('');
@@ -101,16 +116,32 @@ export function App() {
         // Handle messages from extension
         const handleMessage = (event: MessageEvent) => {
             const message = event.data;
+            console.log('CapCop App: Received message from extension:', message.type, message);
             
             switch (message.type) {
                 case 'initialize':
+                    console.log('CapCop App: Processing initialize message');
+                    console.log('  Providers:', message.data.providers);
+                    console.log('  Sessions:', message.data.sessions);
+                    const firstProvider = message.data.providers.length > 0 ? message.data.providers[0].id : 'ollama';
+                    console.log('  Setting initial provider to:', firstProvider);
                     setState(prev => ({
                         ...prev,
                         providers: message.data.providers,
                         sessions: message.data.sessions,
                         activeSessionId: message.data.activeSessionId,
                         isReady: true,
-                        currentMessages: []
+                        currentMessages: [],
+                        selectedProviderId: firstProvider
+                    }));
+                    break;
+
+                case 'models':
+                    setState(prev => ({
+                        ...prev,
+                        availableModels: message.data.models,
+                        selectedModelId: message.data.models.length > 0 ? message.data.models[0].id : '',
+                        isLoadingModels: false
                     }));
                     break;
 
@@ -153,6 +184,18 @@ export function App() {
                         currentMessages: prev.currentMessages.map(msg => 
                             msg.id === prev.streamingMessageId 
                                 ? { ...msg, content: msg.content + message.data.chunk }
+                                : msg
+                        )
+                    }));
+                    break;
+
+                case 'streamWarning':
+                    // Add warning message to the streaming content
+                    setState(prev => ({
+                        ...prev,
+                        currentMessages: prev.currentMessages.map(msg => 
+                            msg.id === prev.streamingMessageId 
+                                ? { ...msg, content: msg.content + `\n\n⚠️ ${message.data.message}` }
                                 : msg
                         )
                     }));
@@ -214,6 +257,35 @@ export function App() {
         };
     }, []);
 
+    // Load models when provider changes
+    useEffect(() => {
+        if (state.selectedProviderId && state.isReady) {
+            console.log(`🔄 CapCop App: Loading models for provider: ${state.selectedProviderId}`);
+            if (state.selectedProviderId === 'ollama') {
+                console.log('🦙 CapCop App: About to request Ollama models - this should trigger http://localhost:11434/api/tags');
+            }
+            setState(prev => ({ ...prev, isLoadingModels: true }));
+            vscodeRef.current.postMessage({
+                type: 'getModels',
+                data: { providerId: state.selectedProviderId }
+            });
+        }
+    }, [state.selectedProviderId, state.isReady]);
+
+    const handleProviderChange = (providerId: string) => {
+        setState(prev => ({
+            ...prev,
+            selectedProviderId: providerId,
+            availableModels: [],
+            selectedModelId: '',
+            isLoadingModels: true
+        }));
+    };
+
+    const handleModelChange = (modelId: string) => {
+        setState(prev => ({ ...prev, selectedModelId: modelId }));
+    };
+
     const handleSendMessage = () => {
         if (!inputValue.trim() || state.isStreaming) return;
 
@@ -222,7 +294,9 @@ export function App() {
             data: {
                 message: inputValue,
                 sessionId: state.activeSessionId,
-                attachments: attachments
+                attachments: attachments,
+                providerId: state.selectedProviderId,
+                modelId: state.selectedModelId
             }
         });
 
@@ -242,8 +316,8 @@ export function App() {
             type: 'createSession',
             data: {
                 settings: {
-                    providerId: 'openrouter',
-                    modelId: 'openai/gpt-3.5-turbo',
+                    providerId: state.selectedProviderId,
+                    modelId: state.selectedModelId || 'default',
                     temperature: 0.7,
                     systemMessage: 'You are a helpful coding assistant.'
                 }
@@ -384,13 +458,43 @@ export function App() {
                 {state.providers.length > 0 && (
                     <div className="provider-status">
                         <span className="provider-label">Provider:</span>
-                        <select className="provider-select">
-                            {state.providers.map(provider => (
-                                <option key={provider.id} value={provider.id}>
-                                    {provider.displayName}
-                                </option>
-                            ))}
+                        <select 
+                            className="provider-select"
+                            value={state.selectedProviderId}
+                            onChange={(e) => handleProviderChange((e.target as HTMLSelectElement).value)}
+                        >
+                            {state.providers.map(provider => {
+                                console.log('CapCop App: Rendering provider option:', provider);
+                                return (
+                                    <option key={provider.id} value={provider.id}>
+                                        {provider.displayName}
+                                    </option>
+                                );
+                            })}
                         </select>
+                        
+                        <span className="model-label">Model:</span>
+                        {state.isLoadingModels ? (
+                            <span className="loading-models">Loading...</span>
+                        ) : state.availableModels.length > 0 ? (
+                            <select 
+                                className="model-select"
+                                value={state.selectedModelId}
+                                onChange={(e) => handleModelChange((e.target as HTMLSelectElement).value)}
+                            >
+                                {state.availableModels.map(model => (
+                                    <option key={model.id} value={model.id}>
+                                        {model.label}
+                                    </option>
+                                ))}
+                            </select>
+                        ) : state.selectedProviderId === 'ollama' ? (
+                            <span className="no-models-warning">
+                                No models found. Ensure Ollama is running and models are pulled.
+                            </span>
+                        ) : (
+                            <span className="no-models">No models available</span>
+                        )}
                     </div>
                 )}
                 {state.sessions.find(s => s.id === state.activeSessionId) && (

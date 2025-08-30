@@ -21,15 +21,40 @@ export class ProviderRegistry {
     ) {}
 
     async initializeBuiltinProviders(): Promise<void> {
+        console.log('ProviderRegistry: Starting builtin provider initialization...');
+        
+        // Import and register Ollama provider FIRST (so it's the default)
+        const { OllamaProvider } = await import('./OllamaProvider');
+        
+        // Force proxy URL for web environments (code-server)
+        // Since we're always running in code-server, use the proxy
+        const defaultOllamaBase = 'http://localhost:11434';
+        console.log('ProviderRegistry: Using proxy URL for Ollama:', defaultOllamaBase);
+        
+        const ollamaBaseUrl = this.config.getProviderBaseUrl('ollama') || defaultOllamaBase;
+        console.log('ProviderRegistry: Final Ollama base URL:', ollamaBaseUrl);
+        const ollama = new OllamaProvider(ollamaBaseUrl);
+        this.registerProvider(ollama);
+        console.log('ProviderRegistry: Registered Ollama provider');
+
         // Import and register OpenRouter provider
         const { OpenRouterProvider } = await import('./OpenRouterProvider');
         
         // Register with a placeholder API key - will be replaced with actual config
         const openRouter = new OpenRouterProvider('placeholder');
         this.registerProvider(openRouter);
+        console.log('ProviderRegistry: Registered OpenRouter provider');
+        
+        // Debug: Log all registered providers
+        const allProviders = this.getProviders();
+        console.log('ProviderRegistry: Total registered providers:', allProviders.length);
+        allProviders.forEach((provider, index) => {
+            console.log(`  Provider ${index + 1}: ${provider.id} (${provider.displayName})`);
+        });
         
         // Load saved configurations
         await this.loadProviderConfigs();
+        console.log('ProviderRegistry: Builtin provider initialization complete');
     }
 
     registerProvider(provider: ProviderAdapter): void {
@@ -93,10 +118,13 @@ export class ProviderRegistry {
     }
 
     async getModels(providerId: string, forceRefresh = false): Promise<ModelInfo[]> {
+        console.log(`🔍 ProviderRegistry: getModels called for ${providerId}, forceRefresh: ${forceRefresh}`);
+        
         // Check cache first
         if (!forceRefresh) {
             const cached = this.modelCache.get(providerId);
             if (cached && (Date.now() - cached.timestamp < this.MODEL_CACHE_TTL)) {
+                console.log(`📦 ProviderRegistry: Returning cached models for ${providerId} (${cached.models.length} models)`);
                 return cached.models;
             }
         }
@@ -107,7 +135,13 @@ export class ProviderRegistry {
         }
 
         try {
+            console.log(`🌐 ProviderRegistry: Fetching fresh models from ${providerId}...`);
+            if (providerId === 'ollama') {
+                console.log('🦙 ProviderRegistry: About to call Ollama /api/tags endpoint...');
+            }
+            
             const models = await provider.getModels();
+            console.log(`✅ ProviderRegistry: Successfully fetched ${models.length} models from ${providerId}`);
             
             // Cache the results
             this.modelCache.set(providerId, {
@@ -117,11 +151,12 @@ export class ProviderRegistry {
             
             return models;
         } catch (error) {
-            console.error(`Failed to fetch models for provider ${providerId}:`, error);
+            console.error(`❌ ProviderRegistry: Failed to fetch models for provider ${providerId}:`, error);
             
             // Return cached models if available, even if stale
             const cached = this.modelCache.get(providerId);
             if (cached) {
+                console.log(`📦 ProviderRegistry: Falling back to stale cache for ${providerId} (${cached.models.length} models)`);
                 return cached.models;
             }
             
@@ -130,6 +165,11 @@ export class ProviderRegistry {
     }
 
     async isProviderConfigured(providerId: string): Promise<boolean> {
+        // Ollama doesn't require an API key
+        if (providerId === 'ollama') {
+            return true;
+        }
+        
         const config = await this.getProviderConfig(providerId);
         return config !== undefined && config.apiKey.length > 0;
     }

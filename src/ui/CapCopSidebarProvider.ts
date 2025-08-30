@@ -135,12 +135,19 @@ export class CapCopSidebarProvider implements vscode.WebviewViewProvider {
     }
 
     private async _handleReady() {
+        console.log('CapCopSidebarProvider: Handling ready message from webview');
+        
         // Send initial data to webview
         const providers = this.providerRegistry.getProviders();
         const sessions = this.sessionManager.getSessionsSortedByActivity();
         const activeSession = this.sessionManager.getActiveSession();
 
-        this._postMessage({
+        console.log('CapCopSidebarProvider: Retrieved providers for webview:', providers.length);
+        providers.forEach((provider, index) => {
+            console.log(`  Webview Provider ${index + 1}: ${provider.id} (${provider.displayName})`);
+        });
+
+        const initData = {
             type: 'initialize',
             data: {
                 providers: providers.map(p => ({ id: p.id, displayName: p.displayName })),
@@ -152,12 +159,15 @@ export class CapCopSidebarProvider implements vscode.WebviewViewProvider {
                 })),
                 activeSessionId: activeSession?.id
             }
-        });
+        };
+
+        console.log('CapCopSidebarProvider: Sending initialize message to webview:', JSON.stringify(initData, null, 2));
+        this._postMessage(initData);
     }
 
     private async _handleSendMessage(data: any) {
         try {
-            const { message, sessionId, attachments } = data;
+            const { message, sessionId, attachments, providerId, modelId } = data;
             
             // Get or create active session
             let session = this.sessionManager.getActiveSession();
@@ -170,10 +180,24 @@ export class CapCopSidebarProvider implements vscode.WebviewViewProvider {
                 }
                 
                 if (!session) {
-                    // Create a new session with default settings
+                    // Create a new session with UI-selected provider/model
+                    const effectiveProviderId = providerId || 'ollama';
+                    let effectiveModelId = modelId;
+                    
+                    // If no model is selected, try to get the first available model for the provider
+                    if (!effectiveModelId) {
+                        try {
+                            const models = await this.providerRegistry.getModels(effectiveProviderId);
+                            effectiveModelId = models.length > 0 ? models[0].id : 'default';
+                        } catch (error) {
+                            this.logger.warn(`Could not get models for provider ${effectiveProviderId}:`, error);
+                            effectiveModelId = 'default';
+                        }
+                    }
+                    
                     const newSessionId = await this.sessionManager.createSession({
-                        providerId: 'openrouter',
-                        modelId: 'openai/gpt-3.5-turbo',
+                        providerId: effectiveProviderId,
+                        modelId: effectiveModelId,
                         temperature: 0.7,
                         systemMessage: 'You are a helpful coding assistant.'
                     });
@@ -183,6 +207,34 @@ export class CapCopSidebarProvider implements vscode.WebviewViewProvider {
 
             if (!session) {
                 throw new Error('Could not create or get session');
+            }
+
+            // Update session settings if provider/model from UI differs from session
+            const needsUpdate = (providerId && session.settings.providerId !== providerId) ||
+                              (modelId && session.settings.modelId !== modelId);
+            
+            if (needsUpdate) {
+                const updatedSettings: any = {};
+                if (providerId && session.settings.providerId !== providerId) {
+                    updatedSettings.providerId = providerId;
+                }
+                if (modelId && session.settings.modelId !== modelId) {
+                    updatedSettings.modelId = modelId;
+                }
+                
+                // If provider changed but no model specified, get first available model
+                if (providerId && session.settings.providerId !== providerId && !modelId) {
+                    try {
+                        const models = await this.providerRegistry.getModels(providerId);
+                        updatedSettings.modelId = models.length > 0 ? models[0].id : 'default';
+                    } catch (error) {
+                        this.logger.warn(`Could not get models for provider ${providerId}:`, error);
+                        updatedSettings.modelId = 'default';
+                    }
+                }
+                
+                this.sessionManager.updateSessionSettings(session.id, updatedSettings);
+                this.logger.info(`Updated session ${session.id} settings:`, updatedSettings);
             }
 
             // Process attachments and build context
@@ -482,8 +534,20 @@ export class CapCopSidebarProvider implements vscode.WebviewViewProvider {
     }
 
     private async _handleGetModels(data: { providerId: string }) {
+        console.log(`🔍 CapCopSidebarProvider: Handling getModels request for ${data.providerId}`);
+        
         try {
+            if (data.providerId === 'ollama') {
+                console.log('🦙 CapCopSidebarProvider: About to fetch Ollama models via ProviderRegistry...');
+            }
+            
             const models = await this.providerRegistry.getModels(data.providerId);
+            
+            console.log(`✅ CapCopSidebarProvider: Successfully retrieved ${models.length} models for ${data.providerId}`);
+            if (data.providerId === 'ollama' && models.length > 0) {
+                console.log('🦙 CapCopSidebarProvider: Sample Ollama models:', models.slice(0, 3).map(m => m.id));
+            }
+            
             this._postMessage({
                 type: 'models',
                 data: {
@@ -492,6 +556,8 @@ export class CapCopSidebarProvider implements vscode.WebviewViewProvider {
                 }
             });
         } catch (error) {
+            console.error(`❌ CapCopSidebarProvider: Failed to get models for ${data.providerId}:`, error);
+            
             this._postMessage({
                 type: 'error',
                 data: {

@@ -164,7 +164,7 @@
         },
         "capcop.provider.ollama.baseUrl": {
           "type": "string",
-          "default": "http://localhost:11434/v1",
+          "default": "http://localhost:11434",
           "description": "Ollama API base URL"
         },
         "capcop.chat.defaultTemperature": {

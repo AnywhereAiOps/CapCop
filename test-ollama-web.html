@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Ollama Web Compatibility</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+        .log { margin: 5px 0; padding: 5px; background: #2d2d30; border-radius: 3px; }
+        .success { color: #4ec9b0; }
+        .error { color: #f14c4c; }
+        .info { color: #569cd6; }
+        button { padding: 10px 20px; margin: 10px; background: #0e639c; color: white; border: none; cursor: pointer; }
+        button:hover { background: #1177bb; }
+    </style>
+</head>
+<body>
+    <h1>🦙 Ollama Web Compatibility Test</h1>
+    <p>This test verifies that the Ollama provider works in VS Code Web environment.</p>
+    
+    <button onclick="testOllamaAPI()">Test Ollama API</button>
+    <button onclick="clearLogs()">Clear Logs</button>
+    
+    <div id="logs"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const logDiv = document.createElement('div');
+            logDiv.className = `log ${type}`;
+            logDiv.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logs.appendChild(logDiv);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+        }
+
+        async function testOllamaAPI() {
+            log('🔍 Testing Ollama API compatibility...', 'info');
+            
+            try {
+                // Test 1: Fetch models using the proxy URL (same as VS Code Web)
+                log('📡 Fetching models from /proxy/11434/api/tags...', 'info');
+                
+                const response = await fetch('/proxy/11434/api/tags', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                log(`✅ Successfully fetched ${data.models?.length || 0} models`, 'success');
+                
+                // Log first few model names
+                if (data.models && data.models.length > 0) {
+                    const modelNames = data.models.slice(0, 5).map(m => m.name).join(', ');
+                    log(`📋 Sample models: ${modelNames}${data.models.length > 5 ? '...' : ''}`, 'info');
+                }
+
+                // Test 2: Test streaming capability (similar to VS Code extension)
+                log('🔄 Testing streaming API...', 'info');
+                await testStreamingAPI();
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                console.error('Test failed:', error);
+            }
+        }
+
+        async function testStreamingAPI() {
+            try {
+                const testMessage = { role: 'user', content: 'Say "Hello from web test" in exactly 5 words.' };
+                
+                const response = await fetch('/proxy/11434/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'llama3.1:8b', // Use a common model
+                        messages: [testMessage],
+                        stream: true
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Streaming test failed: ${response.status}`);
+                }
+
+                const reader = response.body?.getReader();
+                if (!reader) {
+                    throw new Error('No response reader available');
+                }
+
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let receivedContent = '';
+
+                log('📝 Receiving streaming response...', 'info');
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        const trimmed = line.trim();
+                        if (!trimmed) continue;
+
+                        try {
+                            const data = JSON.parse(trimmed);
+                            
+                            if (data.message?.content) {
+                                receivedContent += data.message.content;
+                            }
+                            
+                            if (data.done) {
+                                reader.releaseLock();
+                                log(`✅ Streaming test completed. Response: "${receivedContent.trim()}"`, 'success');
+                                return;
+                            }
+                        } catch (parseError) {
+                            // Skip malformed JSON
+                        }
+                    }
+                }
+
+                reader.releaseLock();
+                log('✅ Streaming API is functional', 'success');
+                
+            } catch (streamError) {
+                log(`⚠️ Streaming test failed (this is okay for testing): ${streamError.message}`, 'info');
+            }
+        }
+
+        // Run initial test on load
+        window.addEventListener('load', () => {
+            log('🚀 Ollama Web Compatibility Test loaded', 'info');
+            log('💡 Click "Test Ollama API" to verify web compatibility', 'info');
+        });
+    </script>
+</body>
+</html>

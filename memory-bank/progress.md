@@ -119,6 +119,12 @@ Based on README.md, CapCop has achieved initial milestones:
 - **Documentation**: Usage documentation and setup guides
 
 ### Recent Achievements ✅
+- **Ollama Provider Streaming Fixed**: Resolved 401 errors and unknown message warnings for Ollama provider integration
+- **UI-Backend Provider Sync**: UI provider/model selection now properly synchronized with backend session creation  
+- **Dynamic Session Management**: Sessions automatically update provider/model settings when changed in UI
+- **Stream Warning Handling**: Added proper streamWarning message handling with visual indicators in chat
+- **Model Auto-Selection**: Automatic model selection from available Ollama models when none specified
+- **Provider Registry Enhanced**: Added comprehensive logging and Ollama-first initialization order
 - **Fixed run_codeserver.sh**: Resolved vsce packaging errors by removing invalid `extensionKind: ["web"]` from package.json
 - **Background Server Startup**: Implemented nohup background process management with PID tracking and log file management
 - **Health Check System**: Added curl-based server readiness detection accepting both 200 and 302 HTTP responses

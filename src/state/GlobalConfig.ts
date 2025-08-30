@@ -9,7 +9,7 @@ export class GlobalConfig {
 
     // Provider settings
     getDefaultProvider(): string {
-        return this.getConfiguration().get('provider.default', 'openrouter');
+        return this.getConfiguration().get('provider.default', 'ollama');
     }
 
     async setDefaultProvider(providerId: string): Promise<void> {
