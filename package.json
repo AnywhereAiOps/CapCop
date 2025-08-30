@@ -1,0 +1,243 @@
+{
+  "name": "capcop",
+  "displayName": "CapCop",
+  "description": "AI coding assistant designed for VSCode Web environments with secure, permission-based actions",
+  "version": "0.1.0",
+  "publisher": "capcop",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AnywhereAiOps/CapCop.git"
+  },
+  "engines": {
+    "vscode": "^1.92.0"
+  },
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "assistant",
+    "coding",
+    "web",
+    "codespaces"
+  ],
+  "extensionKind": [
+    "web"
+  ],
+  "browser": "./dist/extension-web.js",
+  "activationEvents": [
+    "onView:capcop.sidebar"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "capcop",
+          "title": "CapCop",
+          "icon": "$(robot)"
+        }
+      ]
+    },
+    "views": {
+      "capcop": [
+        {
+          "type": "webview",
+          "id": "capcop.sidebar",
+          "name": "Chat",
+          "when": "true"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "capcop.open",
+        "title": "Open CapCop",
+        "category": "CapCop"
+      },
+      {
+        "command": "capcop.startChat",
+        "title": "Start New Chat",
+        "category": "CapCop",
+        "icon": "$(add)"
+      },
+      {
+        "command": "capcop.insertChange",
+        "title": "Insert Change",
+        "category": "CapCop"
+      },
+      {
+        "command": "capcop.previewEdit",
+        "title": "Preview Edit",
+        "category": "CapCop"
+      },
+      {
+        "command": "capcop.approveEdit",
+        "title": "Approve Edit",
+        "category": "CapCop"
+      },
+      {
+        "command": "capcop.attachFile",
+        "title": "Attach File",
+        "category": "CapCop",
+        "icon": "$(file)"
+      },
+      {
+        "command": "capcop.attachFolder",
+        "title": "Attach Folder",
+        "category": "CapCop",
+        "icon": "$(folder)"
+      },
+      {
+        "command": "capcop.attachUrl",
+        "title": "Attach URL",
+        "category": "CapCop",
+        "icon": "$(link)"
+      },
+      {
+        "command": "capcop.attachProblems",
+        "title": "Attach Problems",
+        "category": "CapCop",
+        "icon": "$(warning)"
+      },
+      {
+        "command": "capcop.configureProvider",
+        "title": "Configure Provider",
+        "category": "CapCop",
+        "icon": "$(settings-gear)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "capcop.startChat",
+          "when": "view == capcop.sidebar",
+          "group": "navigation@1"
+        },
+        {
+          "command": "capcop.configureProvider",
+          "when": "view == capcop.sidebar",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "CapCop",
+      "properties": {
+        "capcop.provider.default": {
+          "type": "string",
+          "default": "openrouter",
+          "enum": [
+            "openrouter",
+            "openai",
+            "anthropic",
+            "azure",
+            "gemini",
+            "ollama"
+          ],
+          "description": "Default LLM provider"
+        },
+        "capcop.provider.openai.baseUrl": {
+          "type": "string",
+          "default": "https://api.openai.com/v1",
+          "description": "OpenAI API base URL"
+        },
+        "capcop.provider.openrouter.baseUrl": {
+          "type": "string",
+          "default": "https://openrouter.ai/api/v1",
+          "description": "OpenRouter API base URL"
+        },
+        "capcop.provider.anthropic.baseUrl": {
+          "type": "string",
+          "default": "https://api.anthropic.com/v1",
+          "description": "Anthropic API base URL"
+        },
+        "capcop.provider.gemini.baseUrl": {
+          "type": "string",
+          "default": "https://generativelanguage.googleapis.com/v1beta",
+          "description": "Gemini API base URL"
+        },
+        "capcop.provider.azure.baseUrl": {
+          "type": "string",
+          "description": "Azure OpenAI API base URL"
+        },
+        "capcop.provider.ollama.baseUrl": {
+          "type": "string",
+          "default": "http://localhost:11434/v1",
+          "description": "Ollama API base URL"
+        },
+        "capcop.chat.defaultTemperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Default temperature for chat completions"
+        },
+        "capcop.context.maxFileSize": {
+          "type": "number",
+          "default": 1048576,
+          "description": "Maximum file size in bytes for context attachment (1MB)"
+        },
+        "capcop.context.maxFolderFiles": {
+          "type": "number",
+          "default": 100,
+          "description": "Maximum number of files to process when attaching folders"
+        },
+        "capcop.mcp.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable MCP (Model Context Protocol) support (experimental)"
+        },
+        "capcop.telemetry.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable telemetry collection"
+        },
+        "capcop.ui.showTokenCost": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show token usage and cost estimation in UI"
+        },
+        "capcop.security.requireApproval": {
+          "type": "boolean",
+          "default": true,
+          "description": "Require user approval for all file modifications"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node build.js",
+    "build:watch": "node build.js --watch",
+    "compile": "tsc -p ./",
+    "compile:watch": "tsc -p ./ -w",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src --ext ts",
+    "lint:fix": "eslint src --ext ts --fix",
+    "package": "vsce package",
+    "deploy": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "20.x",
+    "@types/vscode": "^1.92.0",
+    "@typescript-eslint/eslint-plugin": "^7.14.1",
+    "@typescript-eslint/parser": "^7.11.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "@vscode/test-web": "^0.0.55",
+    "@vscode/vsce": "^2.29.0",
+    "esbuild": "^0.21.5",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  },
+  "dependencies": {
+    "@preact/signals-core": "^1.12.1",
+    "preact": "^10.27.1",
+    "vscode-nls": "^5.2.0",
+    "zod": "^3.23.8"
+  }
+}

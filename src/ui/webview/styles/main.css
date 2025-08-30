@@ -1,0 +1,540 @@
+:root {
+    --vscode-font-family: var(--font-family);
+    --vscode-font-size: var(--font-size);
+    --primary-color: #0078d4;
+    --primary-hover: #106ebe;
+    --secondary-color: #6c757d;
+    --border-radius: 4px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --transition: all 0.2s ease;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    font-size: var(--vscode-font-size, 14px);
+    color: var(--vscode-foreground);
+    background-color: var(--vscode-editor-background);
+    line-height: 1.4;
+}
+
+.app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Header */
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--vscode-widget-border);
+    background-color: var(--vscode-sideBar-background);
+    flex-shrink: 0;
+}
+
+.app-header h1 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--vscode-sideBarTitle-foreground);
+}
+
+.header-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+/* Buttons */
+.btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--vscode-button-border, transparent);
+    border-radius: var(--border-radius);
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    font-size: 12px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.btn:hover {
+    background-color: var(--vscode-button-hoverBackground);
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+}
+
+.btn-secondary:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.btn-sm {
+    padding: var(--spacing-xs);
+    font-size: 11px;
+    min-width: 24px;
+    height: 24px;
+}
+
+/* Main content */
+.app-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Loading state */
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: var(--spacing-md);
+    color: var(--vscode-descriptionForeground);
+}
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--vscode-progressBar-background, #e0e0e0);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Empty state */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: var(--spacing-lg);
+    text-align: center;
+    color: var(--vscode-descriptionForeground);
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.6;
+}
+
+.empty-state h3 {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: 18px;
+    color: var(--vscode-foreground);
+}
+
+.empty-state p {
+    margin: 0 0 var(--spacing-lg) 0;
+    line-height: 1.5;
+    max-width: 300px;
+}
+
+/* Chat interface */
+.chat-interface {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.session-info {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--vscode-widget-border);
+    flex-shrink: 0;
+}
+
+.session-selector {
+    width: 100%;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: var(--border-radius);
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    font-size: 12px;
+}
+
+.session-selector:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
+/* Messages */
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.message {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.message.system .message-content {
+    background-color: var(--vscode-textCodeBlock-background);
+    border: 1px solid var(--vscode-widget-border);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    font-style: italic;
+    color: var(--vscode-descriptionForeground);
+}
+
+.message.user .message-content {
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin-left: var(--spacing-lg);
+    align-self: flex-end;
+}
+
+.message.assistant .message-content {
+    background-color: var(--vscode-input-background);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin-right: var(--spacing-lg);
+}
+
+/* Input container */
+.input-container {
+    flex-shrink: 0;
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--vscode-widget-border);
+    background-color: var(--vscode-sideBar-background);
+}
+
+.input-toolbar {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
+}
+
+.input-wrapper {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: flex-end;
+}
+
+.message-input {
+    flex: 1;
+    resize: vertical;
+    min-height: 60px;
+    max-height: 120px;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: var(--border-radius);
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1.4;
+}
+
+.message-input:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
+.message-input::placeholder {
+    color: var(--vscode-input-placeholderForeground);
+}
+
+.send-button {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: var(--border-radius);
+    background-color: var(--primary-color);
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    height: 36px;
+    min-width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.send-button:hover {
+    background-color: var(--primary-hover);
+}
+
+.send-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Footer */
+.app-footer {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-top: 1px solid var(--vscode-widget-border);
+    background-color: var(--vscode-statusBar-background);
+    flex-shrink: 0;
+    font-size: 11px;
+}
+
+.provider-status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--vscode-statusBar-foreground);
+}
+
+.provider-label {
+    font-weight: 500;
+}
+
+.provider-select {
+    padding: 2px var(--spacing-xs);
+    border: 1px solid var(--vscode-widget-border);
+    border-radius: var(--border-radius);
+    background-color: var(--vscode-dropdown-background);
+    color: var(--vscode-dropdown-foreground);
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.provider-select:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
+/* Scrollbar styles for webkit browsers */
+.messages-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+    background: var(--vscode-scrollbarSlider-background);
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+    background: var(--vscode-scrollbarSlider-background);
+    border-radius: 4px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+    background: var(--vscode-scrollbarSlider-hoverBackground);
+}
+
+/* Streaming cursor animation */
+.streaming-cursor {
+    animation: blink 1s step-end infinite;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* Message timestamps */
+.message-timestamp {
+    font-size: 10px;
+    color: var(--vscode-descriptionForeground);
+    margin-top: var(--spacing-xs);
+    text-align: right;
+}
+
+.message.user .message-timestamp {
+    text-align: right;
+}
+
+.message.assistant .message-timestamp {
+    text-align: left;
+}
+
+/* Attachment chips */
+.attachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
+}
+
+.attachment-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background-color: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.remove-attachment {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    font-size: 12px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.remove-attachment:hover {
+    opacity: 1;
+}
+
+/* Token usage in footer */
+.app-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.token-usage {
+    color: var(--vscode-statusBar-foreground);
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+/* Disabled state for streaming */
+.message-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Better code block styling in messages */
+.message-content pre {
+    background-color: var(--vscode-textCodeBlock-background);
+    border: 1px solid var(--vscode-widget-border);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-sm);
+    margin: var(--spacing-xs) 0;
+    overflow-x: auto;
+    font-family: var(--vscode-editor-font-family, 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.message-content code {
+    background-color: var(--vscode-textCodeBlock-background);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-family: var(--vscode-editor-font-family, 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace);
+    font-size: 12px;
+}
+
+/* Better markdown styling */
+.message-content h1,
+.message-content h2,
+.message-content h3,
+.message-content h4,
+.message-content h5,
+.message-content h6 {
+    margin: var(--spacing-md) 0 var(--spacing-sm) 0;
+    color: var(--vscode-foreground);
+    font-weight: 600;
+}
+
+.message-content h1 { font-size: 18px; }
+.message-content h2 { font-size: 16px; }
+.message-content h3 { font-size: 14px; }
+.message-content h4 { font-size: 13px; }
+.message-content h5 { font-size: 12px; }
+.message-content h6 { font-size: 11px; }
+
+.message-content ul,
+.message-content ol {
+    margin: var(--spacing-sm) 0;
+    padding-left: var(--spacing-lg);
+}
+
+.message-content li {
+    margin: var(--spacing-xs) 0;
+}
+
+.message-content blockquote {
+    margin: var(--spacing-sm) 0;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-left: 3px solid var(--primary-color);
+    background-color: var(--vscode-textCodeBlock-background);
+    font-style: italic;
+}
+
+.message-content p {
+    margin: var(--spacing-sm) 0;
+    line-height: 1.5;
+}
+
+/* Error styling */
+.message.assistant .message-content:has-text("Error:") {
+    background-color: var(--vscode-errorBackground, rgba(255, 0, 0, 0.1));
+    border-color: var(--vscode-errorBorder, #ff0000);
+    color: var(--vscode-errorForeground);
+}
+
+/* Responsive design */
+@media (max-width: 400px) {
+    .app-header {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .app-header h1 {
+        font-size: 14px;
+    }
+    
+    .input-container {
+        padding: var(--spacing-sm);
+    }
+    
+    .messages-container {
+        padding: var(--spacing-sm);
+    }
+
+    .message.user .message-content {
+        margin-left: var(--spacing-sm);
+    }
+
+    .message.assistant .message-content {
+        margin-right: var(--spacing-sm);
+    }
+}

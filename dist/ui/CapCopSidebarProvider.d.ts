@@ -1,0 +1,38 @@
+import * as vscode from 'vscode';
+import { ProviderRegistry } from '../core/providers/ProviderRegistry';
+import { ToolRegistry } from '../core/tools/ToolRegistry';
+import { ChatSessionManager } from '../core/sessions/ChatSessionManager';
+import { Logger } from '../core/logging/Logger';
+export declare class CapCopSidebarProvider implements vscode.WebviewViewProvider {
+    private readonly extensionUri;
+    private readonly providerRegistry;
+    private readonly toolRegistry;
+    private readonly sessionManager;
+    private readonly logger;
+    static readonly viewType = "capcop.sidebar";
+    private _view?;
+    constructor(extensionUri: vscode.Uri, providerRegistry: ProviderRegistry, toolRegistry: ToolRegistry, sessionManager: ChatSessionManager, logger: Logger);
+    resolveWebviewView(webviewView: vscode.WebviewView, _context: vscode.WebviewViewResolveContext, _token: vscode.CancellationToken): void;
+    focusSession(sessionId: string): void;
+    attachFiles(files: vscode.Uri[]): void;
+    attachFolder(folder: vscode.Uri): void;
+    attachUrl(url: string): void;
+    attachProblems(): void;
+    dispose(): void;
+    private _handleWebviewMessage;
+    private _handleReady;
+    private _handleSendMessage;
+    private _processAttachments;
+    private _attachFile;
+    private _attachFolder;
+    private _attachUrl;
+    private _attachProblems;
+    private _handleToolCall;
+    private _handleGetProviders;
+    private _handleGetModels;
+    private _handleCreateSession;
+    private _handleSwitchSession;
+    private _postMessage;
+    private _getHtmlForWebview;
+    private _getNonce;
+}
