@@ -1,6 +1,6 @@
 name: Release
 
-on:
+'on':
   push:
     tags:
       - 'v*.*.*'  # Triggers on semantic version tags like v1.0.0
@@ -20,12 +20,12 @@ jobs:
   build:
     name: Build and Package
     runs-on: ubuntu-latest
-    
+
     outputs:
       version: ${{ steps.version.outputs.version }}
       tag: ${{ steps.version.outputs.tag }}
       vsix_created: ${{ steps.package_extension.outputs.vsix_created }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -80,13 +80,13 @@ jobs:
         run: |
           if [ -f package.json ] && grep -q '"engines".*"vscode"' package.json; then
             echo "VS Code extension detected, packaging..."
-            
+
             # Install vsce if not already installed
             npm install -g @vscode/vsce
-            
+
             # Package the extension
             vsce package --out "capcop-${{ steps.version.outputs.version }}.vsix"
-            
+
             echo "vsix_created=true" >> $GITHUB_OUTPUT
             echo "vsix_file=capcop-${{ steps.version.outputs.version }}.vsix" >> $GITHUB_OUTPUT
           else
@@ -98,7 +98,7 @@ jobs:
         run: |
           # Create a source distribution
           git archive --format=tar.gz --prefix=capcop-${{ steps.version.outputs.version }}/ ${{ steps.version.outputs.tag }} > capcop-${{ steps.version.outputs.version }}-source.tar.gz
-          
+
           # If there are built artifacts, include them
           if [ -d "out" ] || [ -d "dist" ] || [ -d "build" ]; then
             tar -czf capcop-${{ steps.version.outputs.version }}-built.tar.gz out/ dist/ build/ 2>/dev/null || true
@@ -117,7 +117,7 @@ jobs:
     name: Create GitHub Release
     runs-on: ubuntu-latest
     needs: build
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -135,7 +135,7 @@ jobs:
         run: |
           # Generate release notes from commits since last tag
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ needs.build.outputs.tag }}^ 2>/dev/null || echo "")
-          
+
           if [ -n "$PREVIOUS_TAG" ]; then
             echo "## What's Changed" > release_notes.md
             echo "" >> release_notes.md
@@ -148,7 +148,7 @@ jobs:
             echo "" >> release_notes.md
             echo "This is the first release of CapCop." >> release_notes.md
           fi
-          
+
           echo "Release notes generated:"
           cat release_notes.md
 
@@ -171,7 +171,7 @@ jobs:
     needs: [build, release]
     if: needs.build.outputs.vsix_created == 'true'
     environment: marketplace  # Use GitHub environment for additional protection
-    
+
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -187,7 +187,7 @@ jobs:
       - name: Publish to VS Code Marketplace
         run: |
           npm install -g @vscode/vsce
-          
+
           # Publish to VS Code Marketplace
           # Note: VSCE_PAT should be set as a secret in the marketplace environment
           if [ -n "${{ secrets.VSCE_PAT }}" ]; then
@@ -201,7 +201,7 @@ jobs:
       - name: Publish to Open VSX Registry
         run: |
           npm install -g ovsx
-          
+
           # Publish to Open VSX Registry (alternative marketplace)
           # Note: OVSX_PAT should be set as a secret in the marketplace environment
           if [ -n "${{ secrets.OVSX_PAT }}" ]; then
