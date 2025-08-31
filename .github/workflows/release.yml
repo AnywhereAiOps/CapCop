@@ -1,0 +1,213 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on semantic version tags like v1.0.0
+  workflow_dispatch:  # Allow manual triggering
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  build:
+    name: Build and Package
+    runs-on: ubuntu-latest
+    
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      vsix_created: ${{ steps.package_extension.outputs.vsix_created }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Get version info
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          VERSION=${TAG#v}
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Tag: ${TAG}, Version: ${VERSION}"
+
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+          else
+            echo "No package.json found, skipping npm install"
+          fi
+
+      - name: Run tests
+        run: |
+          if [ -f package.json ] && npm run | grep -q "test"; then
+            npm test
+          else
+            echo "No tests found, skipping"
+          fi
+
+      - name: Build project
+        run: |
+          if [ -f package.json ] && npm run | grep -q "build"; then
+            npm run build
+          else
+            echo "No build script found, skipping"
+          fi
+
+      - name: Package VS Code Extension
+        id: package_extension
+        run: |
+          if [ -f package.json ] && grep -q '"engines".*"vscode"' package.json; then
+            echo "VS Code extension detected, packaging..."
+            
+            # Install vsce if not already installed
+            npm install -g @vscode/vsce
+            
+            # Package the extension
+            vsce package --out "capcop-${{ steps.version.outputs.version }}.vsix"
+            
+            echo "vsix_created=true" >> $GITHUB_OUTPUT
+            echo "vsix_file=capcop-${{ steps.version.outputs.version }}.vsix" >> $GITHUB_OUTPUT
+          else
+            echo "Not a VS Code extension, skipping VSIX packaging"
+            echo "vsix_created=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create distribution archive
+        run: |
+          # Create a source distribution
+          git archive --format=tar.gz --prefix=capcop-${{ steps.version.outputs.version }}/ ${{ steps.version.outputs.tag }} > capcop-${{ steps.version.outputs.version }}-source.tar.gz
+          
+          # If there are built artifacts, include them
+          if [ -d "out" ] || [ -d "dist" ] || [ -d "build" ]; then
+            tar -czf capcop-${{ steps.version.outputs.version }}-built.tar.gz out/ dist/ build/ 2>/dev/null || true
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: |
+            *.vsix
+            *.tar.gz
+          retention-days: 30
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: ./artifacts
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          # Generate release notes from commits since last tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ needs.build.outputs.tag }}^ 2>/dev/null || echo "")
+          
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "## What's Changed" > release_notes.md
+            echo "" >> release_notes.md
+            git log --pretty=format:"- %s" $PREVIOUS_TAG..${{ needs.build.outputs.tag }} >> release_notes.md
+            echo "" >> release_notes.md
+            echo "" >> release_notes.md
+            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREVIOUS_TAG...${{ needs.build.outputs.tag }}" >> release_notes.md
+          else
+            echo "## Initial Release" > release_notes.md
+            echo "" >> release_notes.md
+            echo "This is the first release of CapCop." >> release_notes.md
+          fi
+          
+          echo "Release notes generated:"
+          cat release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.build.outputs.tag }}
+          name: Release ${{ needs.build.outputs.tag }}
+          body_path: release_notes.md
+          files: |
+            artifacts/*
+          draft: false
+          prerelease: ${{ contains(needs.build.outputs.tag, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-vscode:
+    name: Publish to VS Code Marketplace
+    runs-on: ubuntu-latest
+    needs: [build, release]
+    if: needs.build.outputs.vsix_created == 'true'
+    environment: marketplace  # Use GitHub environment for additional protection
+    
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: ./artifacts
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Publish to VS Code Marketplace
+        run: |
+          npm install -g @vscode/vsce
+          
+          # Publish to VS Code Marketplace
+          # Note: VSCE_PAT should be set as a secret in the marketplace environment
+          if [ -n "${{ secrets.VSCE_PAT }}" ]; then
+            vsce publish --packagePath artifacts/*.vsix --pat ${{ secrets.VSCE_PAT }}
+            echo "Successfully published to VS Code Marketplace"
+          else
+            echo "VSCE_PAT not configured, skipping marketplace publication"
+            echo "To enable marketplace publishing, add VSCE_PAT secret to the 'marketplace' environment"
+          fi
+
+      - name: Publish to Open VSX Registry
+        run: |
+          npm install -g ovsx
+          
+          # Publish to Open VSX Registry (alternative marketplace)
+          # Note: OVSX_PAT should be set as a secret in the marketplace environment
+          if [ -n "${{ secrets.OVSX_PAT }}" ]; then
+            ovsx publish artifacts/*.vsix --pat ${{ secrets.OVSX_PAT }}
+            echo "Successfully published to Open VSX Registry"
+          else
+            echo "OVSX_PAT not configured, skipping Open VSX publication"
+            echo "To enable Open VSX publishing, add OVSX_PAT secret to the 'marketplace' environment"
+          fi
